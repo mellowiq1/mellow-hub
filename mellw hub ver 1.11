@@ -1,0 +1,235 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- GUIの作成
+local ScreenGui = Instance.new("ScreenGui")
+local KeySystemFrame = Instance.new("Frame")
+local KeyInput = Instance.new("TextBox")
+local KeySubmit = Instance.new("TextButton")
+local MainFrame = Instance.new("Frame")
+local ESPButton = Instance.new("TextButton")
+local InvisibleButton = Instance.new("TextButton") -- 透明化ボタン
+local NoClipButton = Instance.new("TextButton")
+local InfinityJumpButton = Instance.new("TextButton")
+local DiscordLinkButton = Instance.new("TextButton")
+local WalkSpeedLabel = Instance.new("TextLabel")
+local WalkSpeedInput = Instance.new("TextBox")
+local JumpPowerLabel = Instance.new("TextLabel")
+local JumpPowerInput = Instance.new("TextBox")
+
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- 起動の遅延
+wait(3)
+
+-- キーシステム
+KeySystemFrame.Size = UDim2.new(0, 400, 0, 150)
+KeySystemFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+KeySystemFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+KeySystemFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+KeySystemFrame.BorderSizePixel = 2
+KeySystemFrame.Parent = ScreenGui
+
+KeyInput.Size = UDim2.new(0, 250, 0, 30)
+KeyInput.Position = UDim2.new(0.5, -125, 0, 40)
+KeyInput.PlaceholderText = "Enter Key"
+KeyInput.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyInput.Parent = KeySystemFrame
+
+KeySubmit.Size = UDim2.new(0, 150, 0, 30)
+KeySubmit.Position = UDim2.new(0.5, -75, 0, 90)
+KeySubmit.Text = "Submit"
+KeySubmit.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+KeySubmit.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeySubmit.Parent = KeySystemFrame
+
+local function unlockGUI()
+    KeySystemFrame.Visible = false
+    MainFrame.Visible = true
+end
+
+KeySubmit.MouseButton1Click:Connect(function()
+    if KeyInput.Text == "mellow" then
+        unlockGUI()
+    else
+        KeyInput.Text = "Invalid Key"
+    end
+end)
+
+-- MainFrame（メインGUI）設定
+MainFrame.Size = UDim2.new(0, 500, 0, 450)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MainFrame.BorderSizePixel = 2
+MainFrame.Visible = false
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+-- ESPボタン
+ESPButton.Size = UDim2.new(0, 140, 0, 40)
+ESPButton.Position = UDim2.new(0, 10, 0, 10)
+ESPButton.Text = "ESP: OFF"
+ESPButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+ESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPButton.Parent = MainFrame
+
+local ESPEnabled = false
+ESPButton.MouseButton1Click:Connect(function()
+    ESPEnabled = not ESPEnabled
+    if ESPEnabled then
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr.Character and not plr.Character:FindFirstChild("Highlight") then
+                local highlight = Instance.new("Highlight")
+                highlight.Parent = plr.Character
+            end
+        end
+        ESPButton.Text = "ESP: ON"
+    else
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr.Character and plr.Character:FindFirstChild("Highlight") then
+                plr.Character.Highlight:Destroy()
+            end
+        end
+        ESPButton.Text = "ESP: OFF"
+    end
+end)
+
+-- 透明化ボタン
+InvisibleButton.Size = UDim2.new(0, 140, 0, 40)
+InvisibleButton.Position = UDim2.new(0, 160, 0, 10) -- ESPボタンの隣に配置
+InvisibleButton.Text = "Invisible: OFF"
+InvisibleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+InvisibleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+InvisibleButton.Parent = MainFrame
+
+local InvisibleEnabled = false
+InvisibleButton.MouseButton1Click:Connect(function()
+    InvisibleEnabled = not InvisibleEnabled
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+            part.Transparency = InvisibleEnabled and 1 or 0
+            part.CanCollide = not InvisibleEnabled
+        end
+    end
+    InvisibleButton.Text = "Invisible: " .. (InvisibleEnabled and "ON" or "OFF")
+end)
+
+-- NoClipボタン
+NoClipButton.Size = UDim2.new(0, 140, 0, 40)
+NoClipButton.Position = UDim2.new(0, 10, 0, 60)
+NoClipButton.Text = "NoClip: OFF"
+NoClipButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+NoClipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+NoClipButton.Parent = MainFrame
+
+local NoClipEnabled = false
+NoClipButton.MouseButton1Click:Connect(function()
+    NoClipEnabled = not NoClipEnabled
+    NoClipButton.Text = "NoClip: " .. (NoClipEnabled and "ON" or "OFF")
+end)
+
+RunService.Stepped:Connect(function()
+    if NoClipEnabled then
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and part.CanCollide then
+                part.CanCollide = false
+            end
+        end
+    else
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and not part.CanCollide then
+                part.CanCollide = true
+            end
+        end
+    end
+end)
+
+-- InfinityJumpボタン
+InfinityJumpButton.Size = UDim2.new(0, 140, 0, 40)
+InfinityJumpButton.Position = UDim2.new(0, 10, 0, 110)
+InfinityJumpButton.Text = "Jump: OFF"
+InfinityJumpButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+InfinityJumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+InfinityJumpButton.Parent = MainFrame
+
+local InfinityJumpEnabled = false
+InfinityJumpButton.MouseButton1Click:Connect(function()
+    InfinityJumpEnabled = not InfinityJumpEnabled
+    InfinityJumpButton.Text = "Jump: " .. (InfinityJumpEnabled and "ON" or "OFF")
+end)
+
+UserInputService.JumpRequest:Connect(function()
+    if InfinityJumpEnabled then
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+-- WalkSpeedとJumpPower
+WalkSpeedLabel.Size = UDim2.new(0, 120, 0, 30)
+WalkSpeedLabel.Position = UDim2.new(0, 10, 0, 160)
+WalkSpeedLabel.Text = "WalkSpeed"
+WalkSpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+WalkSpeedLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+WalkSpeedLabel.Parent = MainFrame
+
+WalkSpeedInput.Size = UDim2.new(0, 120, 0, 30)
+WalkSpeedInput.Position = UDim2.new(0, 140, 0, 160)
+WalkSpeedInput.PlaceholderText = "16"
+WalkSpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+WalkSpeedInput.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+WalkSpeedInput.Parent = MainFrame
+
+WalkSpeedInput.FocusLost:Connect(function()
+    local speed = tonumber(WalkSpeedInput.Text)
+    if speed then
+        humanoid.WalkSpeed = speed
+    else
+        WalkSpeedInput.Text = "Invalid"
+    end
+end)
+
+JumpPowerLabel.Size = UDim2.new(0, 120, 0, 30)
+JumpPowerLabel.Position = UDim2.new(0, 10, 0, 200)
+JumpPowerLabel.Text = "JumpPower"
+JumpPowerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpPowerLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+JumpPowerLabel.Parent = MainFrame
+
+JumpPowerInput.Size = UDim2.new(0, 120, 0, 30)
+JumpPowerInput.Position = UDim2.new(0, 140, 0, 200)
+JumpPowerInput.PlaceholderText = "50"
+JumpPowerInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpPowerInput.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+JumpPowerInput.Parent = MainFrame
+
+JumpPowerInput.FocusLost:Connect(function()
+    local power = tonumber(JumpPowerInput.Text)
+    if power then
+        humanoid.JumpPower = power
+    else
+        JumpPowerInput.Text = "Invalid"
+    end
+end)
+
+-- Discordサーバーリンクボタン
+DiscordLinkButton.Size = UDim2.new(0, 480, 0, 40)
+DiscordLinkButton.Position = UDim2.new(0, 10, 0, 250)
+DiscordLinkButton.Text = "Join Discord: https://discord.gg/h4kGpuvD7e"
+DiscordLinkButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+DiscordLinkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+DiscordLinkButton.Parent = MainFrame
+
+DiscordLinkButton.MouseButton1Click:Connect(function()
+    setclipboard("https://discord.gg/h4kGpuvD7e")
+    DiscordLinkButton.Text = "Link Copied!"
+    wait(2)
+    DiscordLinkButton.Text = "Join Discord: https://discord.gg/h4kGpuvD7e"
+end)
